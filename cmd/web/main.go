@@ -1,11 +1,20 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"net/http"
+	"os"
 )
 
 func main() {
+	// Command line flag to set address at runtime
+	addr := flag.String("addr", ":4000", "HTTP network address")
+	flag.Parse()
+
+	// Custom logs
+	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
+	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
 	// Spin up a servermux and registry home func as a handler for the "/" URL pattern
 	mux := http.NewServeMux()
@@ -19,7 +28,7 @@ func main() {
 	mux.Handle("/static/", http.StripPrefix("/static", filerServer))
 
 	// Spin up a web server by passing in TCP network and servermux
-	log.Println("Starting server on :4000")
-	err := http.ListenAndServe(":4000", mux)
-	log.Fatal(err)
+	infoLog.Printf("Starting server on %s", *addr)
+	err := http.ListenAndServe(*addr, mux)
+	errorLog.Fatal(err)
 }
